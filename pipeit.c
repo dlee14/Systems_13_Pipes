@@ -18,18 +18,24 @@ int main() {
 
   if(!f) {
     close(status1[WRITE]); //FIRST PIPE NO WRITING => reading
-    close(status2[READ]); //SECOND PIPE NO READING => writing
-    char s[]= "from child";
-    write(status2[WRITE], s, sizeof(s)); //WRITE USING SECOND PIPE
+    char s[100];
     read(status1[READ], s, sizeof(s)); //READ USING FIRST PIPE
-    printf("Message received by child: %s\n", s);
+    int n;
+    sscanf(s, "%d", &n);
+    printf("[child] quick mathing on %d\n", n);
+    n = n * n / 4;
+    sprintf(s, "%d", n);
+    close(status2[READ]);
+    write(status2[WRITE], s, sizeof(s));
+    printf("[child] sending %s\n", s);
   } else {
     close(status1[READ]); //FIRST PIPE NO READING => writing
-    close(status2[WRITE]); //SECOND PIPE NO WRITING => reading
-    char s[]= "from father";
-    write(status1[WRITE], s, sizeof(s)); //WRITE USING FIRST PIPE
-    read(status2[READ], s, sizeof(s)); //READ USING SECOND PIPE
-    printf("Message received by parent: %s\n", s);
+    char s[100]= "124";
+    printf("[parent] sending %s\n", s);
+    write(status1[WRITE], &s, sizeof(s)); //WRITE USING FIRST PIPE
+    close(status2[WRITE]);
+    read(status2[READ], s, sizeof(s));
+    printf("[parent] received %s\n", s);
   }
   return 0;
 }
